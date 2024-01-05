@@ -43,3 +43,79 @@ These rules obviously lead to a fair bit of inherent variability. The goal of th
 
 I will intermittently upload the data to this github, but my daily tracker can be accessed [here](https://docs.google.com/spreadsheets/d/1HjWsuAeAIw3vRhwvQOpY1h-PCmE32JqtX_tgvplsVDQ/edit?usp=sharing)
 
+```{r loading data}
+require(googledrive)
+require(viridis)
+require(ggResidpanel)
+require(plotly)
+require(tidyverse)
+
+cost <- 3.40
+distance <- 39
+
+drive_download("MPG", overwrite = TRUE,
+               type = "csv")
+# 2
+
+mpg <- read_csv("MPG.csv",
+                name_repair = "universal") |> 
+  mutate(time_if_max_speed = distance / mph * 60,
+         effective_mph = distance / (time / 60)) |> 
+  mutate(gals_used = distance / mpg,
+         cost = gals_used * cost,
+         traffic = time - time_if_max_speed,
+         `effective mph` = as.numeric(effective_mph)) |> 
+  filter(!is.na(mpg))
+mpg$tires <- mpg$tires |> 
+  replace_na("new")
+mpg$bridge <- mpg$bridge |>
+  replace_na("closed")
+mpg$year <- mpg$year |>
+  replace_na(2024)
+
+mpg$date  <- mpg |> 
+  mutate(date_full = paste0(date,year)) |> 
+  pull(date_full) |> 
+  as.Date("%d%b%Y") 
+```
+
+
+# First Looks For Data Analysis
+
+Here's was the first check for what the data looked like, since the first obivous question is what is the effect on my mileage given my speed?
+
+```{r}
+mpg |> 
+  # drop_na() |> 
+  ggplot(aes(mph,
+             mpg))+
+  geom_point() +
+  geom_smooth(method = "lm",)+
+  labs(title = "Cruise Control Setting")
+```
+
+I had already started tracking when I got new tires, and immediately noticed the drop in mileage. Here's what it looks like when I break it out by old vs new tires. 
+
+```{r}
+mpg |> 
+  # drop_na() |> 
+  ggplot(aes(mph,
+             mpg))+
+  geom_point() +
+  geom_smooth(method = "lm",)+
+  facet_wrap(facets = "tires")+
+  labs(title = "Cruise Control Setting")
+```
+
+And another way to look at it:
+
+```{r}
+mpg |> 
+  # drop_na() |> 
+  ggplot(aes(mph,
+             mpg,
+             color = tires))+
+  geom_point() +
+  geom_smooth(method = "lm",)+
+  labs(title = "Cruise Control Setting")
+```
