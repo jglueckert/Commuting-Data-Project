@@ -43,7 +43,11 @@ These rules obviously lead to a fair bit of inherent variability. The goal of th
 
 I will intermittently upload the data to this github, but my daily tracker can be accessed [here](https://docs.google.com/spreadsheets/d/1HjWsuAeAIw3vRhwvQOpY1h-PCmE32JqtX_tgvplsVDQ/edit?usp=sharing)
 
-```{r loading data}
+I've added the data manipulations for later parts of the data collection and analysis to this initial data loading and wrangling section for convenience and simpification, this document is intended to read as a logical sequence rather than a chronological reasoning. 
+
+I've set an arbitrary cost for gas for $/gallon based on my time on the east coast. Might change, might be updated, but for now is a largely irrelevant part of the analysis. 
+
+```{r loading data, results='hide'}
 require(googledrive)
 require(viridis)
 require(ggResidpanel)
@@ -55,7 +59,7 @@ distance <- 39
 
 drive_download("MPG", overwrite = TRUE,
                type = "csv")
-# 2
+2
 
 mpg <- read_csv("MPG.csv",
                 name_repair = "universal") |> 
@@ -84,38 +88,108 @@ mpg$date  <- mpg |>
 
 Here's was the first check for what the data looked like, since the first obivous question is what is the effect on my mileage given my speed?
 
-```{r}
-mpg |> 
-  # drop_na() |> 
-  ggplot(aes(mph,
-             mpg))+
-  geom_point() +
-  geom_smooth(method = "lm",)+
-  labs(title = "Cruise Control Setting")
+```{r mph_vs_mpg}
+ggplotly(
+  mpg |> 
+    ggplot(aes(mph,
+               mpg))+
+    geom_point() +
+    geom_smooth(method = "lm",)+
+    labs(title = "Cruise Control Setting") ,
+  dynamicTicks = T
+)
 ```
 
 I had already started tracking when I got new tires, and immediately noticed the drop in mileage. Here's what it looks like when I break it out by old vs new tires. 
 
-```{r}
-mpg |> 
-  # drop_na() |> 
-  ggplot(aes(mph,
-             mpg))+
-  geom_point() +
-  geom_smooth(method = "lm",)+
-  facet_wrap(facets = "tires")+
-  labs(title = "Cruise Control Setting")
+```{r mph_vs_mpg_facet}
+ggplotly(
+  mpg |> 
+    ggplot(aes(mph,
+               mpg))+
+    geom_point() +
+    geom_smooth(method = "lm",)+
+    facet_wrap(facets = "tires")+
+    labs(title = "Cruise Control Setting") ,
+  dynamicTicks = T
+)
 ```
 
 And another way to look at it:
 
+```{r mph_vs_mpg_color}
+ggplotly(
+  mpg |> 
+    ggplot(aes(mph,
+               mpg,
+               color = tires))+
+    geom_point() +
+    geom_smooth(method = "lm",)+
+    labs(title = "Cruise Control Setting") ,
+  dynamicTicks = T
+)
+```
+
+In case anyone is not familiar with how tires work and what the results look like, I basically had racing slicks with almost no tread. [Rolling resistance](https://en.wikipedia.org/wiki/Rolling_resistance) is a real thing folks. 
+
+```{r mph_vs_mpg_vsdate}
+ggplotly(
+  mpg |> 
+    ggplot(aes(mph,
+               mpg,
+               color = date)) + 
+    geom_point()+
+    scale_color_viridis() ,
+  dynamicTicks = T
+)
+```
+
+
+Hmmm, the old vs new tires have a clear separation, but my gut feels like there's still a seasonality effect that I'm not correcting for....
+
+Let's re-arrange the variables a bit.
+
 ```{r}
-mpg |> 
-  # drop_na() |> 
-  ggplot(aes(mph,
-             mpg,
-             color = tires))+
-  geom_point() +
-  geom_smooth(method = "lm",)+
-  labs(title = "Cruise Control Setting")
+ggplotly(
+  mpg |> 
+    ggplot(aes(date,
+               mpg,
+               color = mph)) + 
+    geom_point() +
+    geom_vline(xintercept = (as.Date("2023-05-28"))) +
+    scale_color_viridis()  ,
+  dynamicTicks = T
+)
+```
+
+Seems like there's a pretty nice clean drop off at the time I changed to new tires, but still a decline after November. It's interesting because while there's a decrease in temperatures around where I live starting around ~November that would account for a drop in mileage and efficiency, it's wasn't a large change from November to December.
+
+```{r}
+ggplotly(
+  mpg |> 
+    ggplot(aes(date,
+               mpg,
+               color = mph)) + 
+    geom_point() +
+    geom_vline(xintercept = (as.Date("2023-05-28"))) +
+    geom_vline(xintercept = (as.Date("2023-11-01"))) +
+    geom_vline(xintercept = (as.Date("2023-12-13"))) +
+    scale_color_viridis() ,
+  dynamicTicks = T
+)
+```
+
+ Sadly for my mental health, there's an obvious answer.... [the Washignton Bridge closure ](https://en.wikipedia.org/wiki/Washington_Bridge_(Providence,_Rhode_Island)#2023_westbound_closure)
+
+Unsurprisingly, some process control charts would have been some useful tools to detect these large shifts in performance.
+
+```{r lm_fits}
+
+# TODO add LM model for mpg vs mpg
+# plot resid vs date to check for seasonality
+
+# 
+# mpg |> 
+#   filter(tires == "new") |> 
+#   ggplot(aes(date)
 ```
