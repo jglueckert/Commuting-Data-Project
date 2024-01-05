@@ -1,0 +1,45 @@
+---
+title: "Commuting Data Science Project"
+author: "Jake Glueckert"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: yes
+    code_folding: "hide"
+  editor_options: 
+    chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = F)
+knitr::opts_chunk$set(message = F)
+```
+
+# Intro
+
+This is a data science project I started to convince myself to stop stressing on my commute to work. I asked myself the question, "How much time am I really saving when I rush on my drive to work? What is it costing me to drive faster?" I drive a 2016 prius, it can't really cost that much to save a bit of time, right? From those initial questions the project grew with more questions, and eventually  to be more of practicing data analysis skills and since I had a unique data set that I was intimately familiar with a fun way to learn new skills. This project has turned into a personal data analysis skills portfolio, as I work in a field where many people have open publications, while I have been at commercial firms my entire career and have no demonstration of my skills that I can openly share.  
+
+# The Data
+
+All data was collected by me, and logged into a google drive spreadsheet at the completion of each commute. Anyone interested has my blessing to use the data for practice and learning.
+
+As happens with any data analysis, I realized as time went on that the next set of questions that came to mind required more data. I began collecting additional parameters as I thought of them to answer more fun questions, and to explain some large events that had a significant impact on the results. These included getting new tires and a bridge along my daily commute (The Washington bridge in Providence, RI) closing. Luckily I was able to WFH in the first couple week sof the closure, so luckily/sadly don't have data from that period. 
+
+## The rules
+
+1. Follow the rules of the road (with the exception of the speed limit, which is arguable since not interrupting the flow of traffic is a law and safety concern - there's a weird phenomenon where people from the east coast physically cannot see speed limit signs. I've seen cops blending in with traffic going ~30 MPH over the speed limit and not do anything)
+
+1. Preserve my sanity by driving however is easiest and least stressful
+
+1. Don't be a dick and significantly inconvenience other people
+
+1. Use cruise control as much as possible to stay at the stated speed
+
+While driving on my 39 mile commute on the east coast, I aimed to use cruise control as much as possible to simplify my drive. I drive in the middle lane if it's 3 lanes, or the right lane if it's a 2 lane highway. I don't have adaptive cruise control, so if I came up to someone going slower than me I would pass them. Occasionally people would be passing me at the same time, so I would slow down until they passed, then resume my speed and pass. Occasionally I would have someone come up behind me as I was already passing, so I would speed up to pass faster so they could get by and then I would slow back down. 
+
+These rules obviously lead to a fair bit of inherent variability. The goal of this started as stress reduction, so I stuck to those rules and accepted a bit of extra variability in my models to maintain my sanity. 
+
+## Raw Data
+
+I will intermittently upload the data to this github, but my daily tracker can be accessed [here](https://docs.google.com/spreadsheets/d/1HjWsuAeAIw3vRhwvQOpY1h-PCmE32JqtX_tgvplsVDQ/edit?usp=sharing)
+
