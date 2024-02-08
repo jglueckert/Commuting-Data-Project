@@ -1,19 +1,20 @@
 ---
-title: "Commuting Data Science Project"
+title: "Summary"
 author: "Jake Glueckert"
 date: "`r Sys.Date()`"
-output:
-  bookdown::html_document2:
-    toc: yes
-    code_folding: "hide"
-  editor_options: 
-    chunk_output_type: console
+format: 
+  html:
+    code-fold: true
+editor: source
+toc: true
+toc-depth: 4
+toc-expand: true
+folding: true
+execute: 
+  warning: false
+editor_options: 
+  chunk_output_type: console
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = F)
-knitr::opts_chunk$set(message = F)
-```
 
 # Intro
 
@@ -48,6 +49,8 @@ I've added the data manipulations for later parts of the data collection and ana
 I've set an arbitrary cost for gas for $/gallon based on my time on the east coast. Might change, might be updated, but for now is a largely irrelevant part of the analysis. 
 
 ```{r loading data, results='hide'}
+#| include: false
+
 require(googledrive)
 require(viridis)
 require(ggResidpanel)
@@ -72,10 +75,13 @@ mpg <- read_csv("MPG.csv",
   filter(!is.na(mpg))
 mpg$tires <- mpg$tires |> 
   replace_na("new")
-mpg$bridge <- mpg$bridge |>
-  replace_na("closed")
+mpg$traffic_pattern <- mpg$traffic_pattern |>
+  replace_na(2) 
 mpg$year <- mpg$year |>
   replace_na(2024)
+
+mpg <- mpg |> 
+  mutate(traffic_pattern = as.character(traffic_pattern))
 
 mpg$date  <- mpg |> 
   mutate(date_full = paste0(date,year)) |> 
@@ -84,11 +90,12 @@ mpg$date  <- mpg |>
 ```
 
 
-# First Looks For Data Analysis
+# Exploratory Data Analysis
 
-Here's was the first check for what the data looked like, since the first obivous question is what is the effect on my mileage given my speed?
+Here's was the first check for what the data looked like, since the first obvious question is what is the effect on my mileage given my speed?
 
 ```{r mph_vs_mpg}
+
 ggplotly(
   mpg |> 
     ggplot(aes(mph,
@@ -162,7 +169,11 @@ ggplotly(
 )
 ```
 
-Seems like there's a pretty nice clean drop off at the time I changed to new tires, but still a decline after November. It's interesting because while there's a decrease in temperatures around where I live starting around ~November that would account for a drop in mileage and efficiency, it's wasn't a large change from November to December.
+Seems like there's a pretty nice clean drop off at the time I changed to new tires, but still a decline after November. It's interesting because while there's a decrease in temperatures around where I live starting around ~November that would account for a drop in mileage and efficiency, it's wasn't a large change from November to December. I'll get back to the seasonality and maybe some time series analysis later once I've got a bit more data
+
+::: {.callout-note title="TODO"}
+Pull historical weather data and add temperature as a variable in the analysis.
+:::
 
 ```{r}
 ggplotly(
@@ -174,18 +185,19 @@ ggplotly(
     geom_vline(xintercept = (as.Date("2023-05-28"))) +
     geom_vline(xintercept = (as.Date("2023-11-01"))) +
     geom_vline(xintercept = (as.Date("2023-12-13"))) +
+    geom_vline(xintercept = (as.Date("2024-2-05"))) +
     scale_color_viridis() ,
   dynamicTicks = T
 )
 ```
 
- Sadly for my mental health, there's an obvious answer.... [the Washignton Bridge closure ](https://en.wikipedia.org/wiki/Washington_Bridge_(Providence,_Rhode_Island)#2023_westbound_closure)
+ Sadly for my mental health, there's an obvious answer.... [the Washignton Bridge closure ](https://en.wikipedia.org/wiki/Washington_Bridge_(Providence,_Rhode_Island)#2023_westbound_closure). There was an additional shift in the traffic patterns at the start of February, 
 
 Unsurprisingly, some process control charts would have been some useful tools to detect these large shifts in performance.
 
 ```{r lm_fits}
 
-# TODO add LM model for mpg vs mpg
+# TODO add lm model for mpg vs mpg
 # plot resid vs date to check for seasonality
 
 # 
@@ -193,3 +205,70 @@ Unsurprisingly, some process control charts would have been some useful tools to
 #   filter(tires == "new") |> 
 #   ggplot(aes(date)
 ```
+
+```{r traffic pattern}
+
+mpg |> 
+  ggplot(aes(mph,
+             time,
+             color = traffic_pattern))+
+  geom_point()
+
+bridge_impact <- mpg |> 
+  lm(time ~ mph + traffic_pattern,
+     data = _)
+
+anova(bridge_impact)
+summary(bridge_impact)
+
+```
+
+
+```{r google time}
+
+mpg |> 
+  mutate(mph = as.factor(mph)) |> 
+  ggplot(aes(mph,
+             time - Google.estimate )) + 
+  geom_boxplot()
+
+mpg |> 
+  ggplot(aes(mph)) + 
+  geom_histogram(bins = length(unique(mpg$mph)))
+
+
+mpg |> 
+  ggplot(aes(mph)) + 
+  stat_ecdf() + 
+  scale_x_continuous(minor_breaks = seq(60,90,by=1))
+```
+
+# The Main Question
+
+Is it worth it to drive faster on my commute? I'll answer this question by breaking it down into a couple components: 
+
+1. How much time do I actually save by driving faster? 
+
+1. How much does it cost me to drive faster? 
+
+1. How much more stressful is it? 
+
+I didn't log or quantify it, but generally going faster that 70 mph I have to pass people and disable cruise control which is more stressful. The dream is a stress-free commute which is why the majority of my data is below 70 mph. 
+
+
+```{r}
+mpg |> 
+  ggplot(aes(mph)) + 
+  stat_ecdf() + 
+  scale_x_continuous(minor_breaks = seq(60,90,by=1))
+```
+
+Personal preference, I prefer an empirical cumulative distribution function plot (ECDF) plot over a histogram to avoid the hassle of figuring out the proper bins. An ECDF plot shows you the distribution of the data, with no chance for accidentally setting the wrong number of bins and mistinterpreting the data. There's no summarization, just raw data <3. 
+
+## How much time do I save?
+
+There's several factors that go into the time it takes to commute. The only real factor I can control is how fast I drive. Some other factors are traffic, time of day, day of the week, and more. I'll leave all of those out of the analysis for now.
+
+::: {.callout-note title="TODO"}
+Maybe in the future I'll spend the time to add in the weekday to the analysis and quantify the impact.
+:::
