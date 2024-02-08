@@ -145,7 +145,7 @@ ggplotly(
     ggplot(aes(mph,
                mpg,
                color = date)) + 
-    geom_point()+
+    geom_point() +
     scale_color_viridis() ,
   dynamicTicks = T
 )
@@ -193,7 +193,88 @@ ggplotly(
 
  Sadly for my mental health, there's an obvious answer.... [the Washignton Bridge closure ](https://en.wikipedia.org/wiki/Washington_Bridge_(Providence,_Rhode_Island)#2023_westbound_closure). There was an additional shift in the traffic patterns at the start of February, 
 
-Unsurprisingly, some process control charts would have been some useful tools to detect these large shifts in performance.
+
+# The Main Question
+
+Is it worth it to drive faster on my commute? I'll answer this question by breaking it down into a couple components: 
+
+1. How much time do I actually save by driving faster? 
+
+1. How much does it cost me to drive faster? 
+
+1. How much more stressful is it? 
+
+I didn't log or quantify it, but generally going faster that 70 mph I have to pass people and disable cruise control which is more stressful. The dream is a stress-free commute which is why the majority of my data is below 70 mph. 
+
+
+```{r}
+mpg |> 
+  ggplot(aes(mph)) + 
+  stat_ecdf() + 
+  scale_x_continuous(minor_breaks = seq(60,90,by=1))
+```
+
+I typically prefer an empirical cumulative distribution function (ECDF) plot over a histogram to avoid the hassle of figuring out the proper bins. An ECDF plot shows you the distribution of the data, with no chance for accidentally setting the wrong number of bins and mistinterpreting the data. There's no summarization, just raw data <3. 
+
+## How much time do I save?
+
+There's several factors that go into the time it takes to commute. The only real factor I can control is how fast I drive. Some other factors are traffic, time of day, day of the week, and more. I'll leave all of those out of the analysis for now.
+
+::: {.callout-note title="TODO"}
+Maybe in the future I'll spend the time to add in the weekday to the analysis and quantify the impact. Maybe I'll even get crazy and check if there was precipitation during the day when I would be commuting and see how much more/less traffic there is and how much slower it goes during bad weather... 
+:::
+
+
+```{r }
+
+ggplotly(
+  mpg |> 
+    ggplot(aes(date,
+               time,
+               color = mph)) + 
+    geom_point() +
+    scale_color_viridis() +
+    labs(title = "Cruise Control Setting") ,
+  dynamicTicks = T
+)
+```
+
+
+
+
+```{r }
+
+ggplotly(
+  mpg |> 
+    ggplot(aes(mph,
+               time,
+               color = date)) + 
+    geom_point() +
+    geom_smooth(method = "lm",) +
+    scale_color_viridis() +
+    labs(title = "Cruise Control Setting") ,
+  dynamicTicks = T
+)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Random Analyses that I haven't written up yet
+
+::: {.callout-note title="TODO"}
+Clean up this and move it to a proper section
+:::
 
 ```{r lm_fits}
 
@@ -232,43 +313,4 @@ mpg |>
              time - Google.estimate )) + 
   geom_boxplot()
 
-mpg |> 
-  ggplot(aes(mph)) + 
-  geom_histogram(bins = length(unique(mpg$mph)))
-
-
-mpg |> 
-  ggplot(aes(mph)) + 
-  stat_ecdf() + 
-  scale_x_continuous(minor_breaks = seq(60,90,by=1))
 ```
-
-# The Main Question
-
-Is it worth it to drive faster on my commute? I'll answer this question by breaking it down into a couple components: 
-
-1. How much time do I actually save by driving faster? 
-
-1. How much does it cost me to drive faster? 
-
-1. How much more stressful is it? 
-
-I didn't log or quantify it, but generally going faster that 70 mph I have to pass people and disable cruise control which is more stressful. The dream is a stress-free commute which is why the majority of my data is below 70 mph. 
-
-
-```{r}
-mpg |> 
-  ggplot(aes(mph)) + 
-  stat_ecdf() + 
-  scale_x_continuous(minor_breaks = seq(60,90,by=1))
-```
-
-Personal preference, I prefer an empirical cumulative distribution function plot (ECDF) plot over a histogram to avoid the hassle of figuring out the proper bins. An ECDF plot shows you the distribution of the data, with no chance for accidentally setting the wrong number of bins and mistinterpreting the data. There's no summarization, just raw data <3. 
-
-## How much time do I save?
-
-There's several factors that go into the time it takes to commute. The only real factor I can control is how fast I drive. Some other factors are traffic, time of day, day of the week, and more. I'll leave all of those out of the analysis for now.
-
-::: {.callout-note title="TODO"}
-Maybe in the future I'll spend the time to add in the weekday to the analysis and quantify the impact.
-:::
