@@ -24,7 +24,7 @@ This is a data science project I started to convince myself to stop stressing on
 
 All data was collected by me, and logged into a google drive spreadsheet at the completion of each commute. Anyone interested has my blessing to use the data for practice and learning.
 
-As happens with any data analysis, I realized as time went on that the next set of questions that came to mind required more data. I began collecting additional parameters as I thought of them to answer more fun questions, and to explain some large events that had a significant impact on the results. These included getting new tires and a bridge along my daily commute (The Washington bridge in Providence, RI) closing. Luckily I was able to WFH in the first couple week sof the closure, so luckily/sadly don't have data from that period. 
+As happens with any data analysis, I realized as time went on that the next set of questions that came to mind required more data. I began collecting additional parameters as I thought of them to answer more fun questions, and to explain some large events that had a significant impact on the results. These included getting new tires and a bridge along my daily commute (The Washington bridge in Providence, RI) closing. Luckily I was able to WFH in the first couple weeks of the closure, so luckily/sadly don't have data from that period. 
 
 ## The rules
 
@@ -157,6 +157,8 @@ Hmmm, the old vs new tires have a clear separation, but my gut feels like there'
 Let's re-arrange the variables a bit.
 
 ```{r}
+mpg |> 
+  
 ggplotly(
   mpg |> 
     ggplot(aes(date,
@@ -167,6 +169,7 @@ ggplotly(
     scale_color_viridis()  ,
   dynamicTicks = T
 )
+
 ```
 
 Seems like there's a pretty nice clean drop off at the time I changed to new tires, but still a decline after November. It's interesting because while there's a decrease in temperatures around where I live starting around ~November that would account for a drop in mileage and efficiency, it's wasn't a large change from November to December. I'll get back to the seasonality and maybe some time series analysis later once I've got a bit more data
@@ -201,8 +204,6 @@ Is it worth it to drive faster on my commute? I'll answer this question by break
 1. How much time do I actually save by driving faster? 
 
 1. How much does it cost me to drive faster? 
-
-1. How much more stressful is it? 
 
 I didn't log or quantify it, but generally going faster that 70 mph I have to pass people and disable cruise control which is more stressful. The dream is a stress-free commute which is why the majority of my data is below 70 mph. 
 
@@ -259,7 +260,23 @@ ggplotly(
 
 
 
+```{r}
+fit <- mpg |> 
+  lm(time ~ mph * commute * traffic_pattern,
+     data = _)
 
+prediction_data <- tibble(mph = seq(min(mpg$mph), max(mpg$mph)),)
+
+```
+
+
+### Bonus Question! 
+
+RIDOT posted [this](https://www.dot.ri.gov/projects/WashingtonBridgeClosure/docs/travel/001.%20I-195W%20from%20State%20Line%20to%20I-95%20split.pdf) with the estimated difference in commuting times. It doesn't seem too accurate based on just gut intuition, I've typically been commuting around 8-9 in the morning, and somewhere around 2-6 in the evening. Lets see if I can figure out what time they think I commute...
+
+
+
+## How much does it cost me to drive faster?
 
 
 
