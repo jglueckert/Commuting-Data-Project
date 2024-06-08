@@ -18,7 +18,7 @@ editor_options:
 
 # Intro
 
-This is a data science project I started to convince myself to stop stressing on my commute to work. I asked myself the question, "How much time am I really saving when I rush on my drive to work? What is it costing me to drive faster?" I drive a 2016 prius, it can't really cost that much to save a bit of time, right? From those initial questions the project grew with more questions, and eventually  to be more of practicing data analysis skills and since I had a unique data set that I was intimately familiar with a fun way to learn new skills. This project has turned into a personal data analysis skills portfolio, as I work in a field where many people have open publications, while I have been at commercial firms my entire career and have no demonstration of my skills that I can openly share.  
+This is a data science project I started to convince myself to stop stressing on my commute to work. I asked myself the question, "How much time am I really saving when I rush on my drive to work? What is it costing me to drive faster?" I drive a 2016 prius, it can't really cost that much to save a bit of time, right? From those initial questions the project grew with more questions, and eventually  to be more of practicing data analysis skills and since I had a unique data set that I was intimately familiar with a fun way to learn new skills. 
 
 # The Data
 
@@ -28,13 +28,18 @@ As happens with any data analysis, I realized as time went on that the next set 
 
 ## The rules
 
+
 1. Follow the rules of the road (with the exception of the speed limit, which is arguable since not interrupting the flow of traffic is a law and safety concern - there's a weird phenomenon where people from the east coast physically cannot see speed limit signs. I've seen cops blending in with traffic going ~30 MPH over the speed limit and not do anything)
 
 1. Preserve my sanity by driving however is easiest and least stressful
 
-1. Don't be a dick and significantly inconvenience other people
+1. Don't be a dick, and significantly inconvenience other people
 
-1. Use cruise control as much as possible to stay at the stated speed
+1. Use cruise control as much as possible to stay at the nominal speed
+
+
+Fun Anecdote:  
+I would pass people if they were going significantly slower than me. Sometimes after I passed them, they would realize how slow they were going, speed up and pass me as soon as I got around them. Sometimes they just got offended for some reason. There was one time I passed a person going at least 10 MPH slower than me only for them to zip around and get back in front of me, and immediately go slow again. I passed again, they passed, etc. Rinse and repeat for 4 times. I gave her a thumbs up when I passed her the final time as she was getting off the highway, and she returned the gesture with a different finger...
 
 While driving on my 39 mile commute on the east coast, I aimed to use cruise control as much as possible to simplify my drive. I drive in the middle lane if it's 3 lanes, or the right lane if it's a 2 lane highway. I don't have adaptive cruise control, so if I came up to someone going slower than me I would pass them. Occasionally people would be passing me at the same time, so I would slow down until they passed, then resume my speed and pass. Occasionally I would have someone come up behind me as I was already passing, so I would speed up to pass faster so they could get by and then I would slow back down. 
 
@@ -42,11 +47,11 @@ These rules obviously lead to a fair bit of inherent variability. The goal of th
 
 ## Raw Data
 
-I will intermittently upload the data to this github, but my daily tracker can be accessed [here](https://docs.google.com/spreadsheets/d/1HjWsuAeAIw3vRhwvQOpY1h-PCmE32JqtX_tgvplsVDQ/edit?usp=sharing)
+Now that this phase of my life is over, the data from my daily tracker can be accessed on the github.  
 
-I've added the data manipulations for later parts of the data collection and analysis to this initial data loading and wrangling section for convenience and simpification, this document is intended to read as a logical sequence rather than a chronological reasoning. 
+I've added the data manipulations for later parts of the data collection and analysis to this initial data loading and wrangling section for convenience and simplification, this document is intended to read as a logical sequence rather than a chronological reasoning. 
 
-I've set an arbitrary cost for gas for $/gallon based on my time on the east coast. Might change, might be updated, but for now is a largely irrelevant part of the analysis. 
+I've set an arbitrary cost for gas for $/gallon based on my time on the east coast. Might change, might be updated, but for now the exact accuracy is not a concern.  
 
 ```{r loading data, results='hide'}
 #| include: false
@@ -59,10 +64,6 @@ require(tidyverse)
 
 cost <- 3.40
 distance <- 39
-
-drive_download("MPG", overwrite = TRUE,
-               type = "csv")
-2
 
 mpg <- read_csv("MPG.csv",
                 name_repair = "universal") |> 
@@ -152,13 +153,11 @@ ggplotly(
 ```
 
 
-Hmmm, the old vs new tires have a clear separation, but my gut feels like there's still a seasonality effect that I'm not correcting for....
+Hmmm, the old vs new tires have a clear separation, but my gut feels like there's still somethin going on that I'm not correcting for....
 
 Let's re-arrange the variables a bit.
 
 ```{r}
-mpg |> 
-  
 ggplotly(
   mpg |> 
     ggplot(aes(date,
@@ -174,9 +173,9 @@ ggplotly(
 
 Seems like there's a pretty nice clean drop off at the time I changed to new tires, but still a decline after November. It's interesting because while there's a decrease in temperatures around where I live starting around ~November that would account for a drop in mileage and efficiency, it's wasn't a large change from November to December. I'll get back to the seasonality and maybe some time series analysis later once I've got a bit more data
 
-::: {.callout-note title="TODO"}
+
 Pull historical weather data and add temperature as a variable in the analysis.
-:::
+
 
 ```{r}
 ggplotly(
@@ -194,7 +193,7 @@ ggplotly(
 )
 ```
 
- Sadly for my mental health, there's an obvious answer.... [the Washignton Bridge closure ](https://en.wikipedia.org/wiki/Washington_Bridge_(Providence,_Rhode_Island)#2023_westbound_closure). There was an additional shift in the traffic patterns at the start of February, 
+ Sadly for my mental health, there's an obvious answer.... [the Washington Bridge closure ](https://en.wikipedia.org/wiki/Washington_Bridge_(Providence,_Rhode_Island)#2023_westbound_closure). There was an additional shift in the traffic patterns at the start of February, 
 
 
 # The Main Question
@@ -215,15 +214,13 @@ mpg |>
   scale_x_continuous(minor_breaks = seq(60,90,by=1))
 ```
 
-I typically prefer an empirical cumulative distribution function (ECDF) plot over a histogram to avoid the hassle of figuring out the proper bins. An ECDF plot shows you the distribution of the data, with no chance for accidentally setting the wrong number of bins and mistinterpreting the data. There's no summarization, just raw data <3. 
+I typically prefer an empirical cumulative distribution function (ECDF) plot over a histogram to avoid the hassle of figuring out the proper bins. An ECDF plot shows you the distribution of the data, with no chance for accidentally setting the wrong number of bins and misinterpreting the data. There's no summarization, just raw data <3. 
 
 ## How much time do I save?
 
 There's several factors that go into the time it takes to commute. The only real factor I can control is how fast I drive. Some other factors are traffic, time of day, day of the week, and more. I'll leave all of those out of the analysis for now.
 
-::: {.callout-note title="TODO"}
 Maybe in the future I'll spend the time to add in the weekday to the analysis and quantify the impact. Maybe I'll even get crazy and check if there was precipitation during the day when I would be commuting and see how much more/less traffic there is and how much slower it goes during bad weather... 
-:::
 
 
 ```{r }
@@ -241,6 +238,21 @@ ggplotly(
 ```
 
 
+```{r }
+
+ggplotly(
+  mpg |> 
+    ggplot(aes(mph,
+               time,
+               color = mph)) + 
+    geom_point() +
+    facet_wrap(facets = "traffic_pattern")  +
+    scale_color_viridis() +
+    geom_smooth(method = "lm") + 
+    labs(title = "Cruise Control Setting") ,
+  dynamicTicks = T
+)
+```
 
 
 ```{r }
@@ -257,7 +269,6 @@ ggplotly(
   dynamicTicks = T
 )
 ```
-
 
 
 ```{r}
